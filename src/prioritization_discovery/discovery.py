@@ -3,7 +3,7 @@ import pandas as pd
 from .config import EventLogIDs
 
 
-def discover_prioritized_instances(event_log: pd.DataFrame, log_ids: EventLogIDs) -> pd.DataFrame:
+def discover_prioritized_instances(event_log: pd.DataFrame, log_ids: EventLogIDs) -> list:
     """
     Discover activity instances that are prioritized over others. This means they are not being executed following a FIFO order, i.e., in
     the order they are enabled.
@@ -24,13 +24,13 @@ def discover_prioritized_instances(event_log: pd.DataFrame, log_ids: EventLogIDs
             # If following events are enabled after current start
             if previous_event is not None and previous_event[log_ids.start_time] > event[log_ids.enabled_time]:
                 # Get events prioritized w.r.t. the previous one
-                prioritized_events = event_log[
-                    (event_log[log_ids.enabled_time] > previous_event[log_ids.enabled_time]) &
-                    (event_log[log_ids.start_time] < previous_event[log_ids.start_time])
+                prioritized_events = events[
+                    (events[log_ids.enabled_time] > previous_event[log_ids.enabled_time]) &
+                    (events[log_ids.start_time] < previous_event[log_ids.start_time])
                     ]
                 # Save info about the prioritized group
-                print("{} prioritized over {}".format([e[log_ids.activity] for e in prioritized_events], previous_event[log_ids.activity]))
-                prioritizations += [(previous_event, prioritized_events)]
+                if len(prioritized_events) > 0:
+                    prioritizations += [(previous_event, prioritized_events)]
             # Jump to next event
             previous_event = event
     return prioritizations
