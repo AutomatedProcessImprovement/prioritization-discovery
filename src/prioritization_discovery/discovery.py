@@ -41,7 +41,7 @@ def discover_prioritized_instances(
         previous_event = None
         for index, event in events.iterrows():
             # If following event is enabled after current start
-            if previous_event is not None and previous_event[log_ids.start_time] > event[log_ids.enabled_time]:
+            if previous_event is not None:
                 # Get events prioritized w.r.t. the previous one
                 prioritized_events = events[
                     (events[log_ids.enabled_time] > previous_event[log_ids.enabled_time]) &
