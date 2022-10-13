@@ -6,7 +6,7 @@ from prioritization_discovery.discovery import discover_prioritized_instances
 
 def test_discover_prioritized_instances():
     # Read event log
-    event_log = pd.read_csv("./assets/event_log_1.csv")
+    event_log = pd.read_csv("./tests/assets/event_log_1.csv")
     event_log[DEFAULT_CSV_IDS.enabled_time] = pd.to_datetime(event_log[DEFAULT_CSV_IDS.enabled_time], utc=True)
     event_log[DEFAULT_CSV_IDS.start_time] = pd.to_datetime(event_log[DEFAULT_CSV_IDS.start_time], utc=True)
     event_log[DEFAULT_CSV_IDS.end_time] = pd.to_datetime(event_log[DEFAULT_CSV_IDS.end_time], utc=True)
@@ -28,7 +28,7 @@ def test_discover_prioritized_instances():
 
 def test_discover_prioritized_instances_with_extra_attribute():
     # Read event log
-    event_log = pd.read_csv("./assets/event_log_2.csv")
+    event_log = pd.read_csv("./tests/assets/event_log_2.csv")
     event_log[DEFAULT_CSV_IDS.enabled_time] = pd.to_datetime(event_log[DEFAULT_CSV_IDS.enabled_time], utc=True)
     event_log[DEFAULT_CSV_IDS.start_time] = pd.to_datetime(event_log[DEFAULT_CSV_IDS.start_time], utc=True)
     event_log[DEFAULT_CSV_IDS.end_time] = pd.to_datetime(event_log[DEFAULT_CSV_IDS.end_time], utc=True)
