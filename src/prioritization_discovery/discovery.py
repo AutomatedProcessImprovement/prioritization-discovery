@@ -1,14 +1,7 @@
 import pandas as pd
+import pandasql as ps
 
 from .config import EventLogIDs
-
-
-def _get_features(current_event: pd.Series, potential_prioritized_event: pd.Series, attributes: list[str]):
-    return [
-               current_event[attribute] for attribute in attributes
-           ] + [
-               potential_prioritized_event[attribute] for attribute in attributes
-           ]
 
 
 def discover_prioritized_instances(
@@ -26,39 +19,27 @@ def discover_prioritized_instances(
 
     :return: a pd.DataFrame with each of the observations (positive and negative) of prioritization found in the event log.
     """
-    event_log = event_log.copy()
     columns = [
-                  "delayed_event_{}".format(attribute) for attribute in attributes
+                  "delayed.{} as delayed_event_{}".format(attribute, attribute) for attribute in attributes
               ] + [
-                  "priorit_event_{}".format(attribute) for attribute in attributes
-              ] + ["output"]
-    prioritizations, non_prioritizations = [], []
-    # Analyze grouped by resource
-    for resource, events in event_log.groupby(log_ids.resource):
-        # Sort them by enabled time
-        events.sort_values([log_ids.enabled_time, log_ids.start_time], inplace=True)
-        # For each event (can't think on a way to filter them and don't have to check all of them)
-        for index, event in events.iterrows():
-            # Get events prioritized w.r.t. the previous one
-            prioritized_events = events[
-                (events[log_ids.enabled_time] > event[log_ids.enabled_time]) &
-                (events[log_ids.start_time] < event[log_ids.start_time])
-                ]
-            if len(prioritized_events) > 0:
-                prioritizations += [
-                    _get_features(event, prioritized_event, attributes) + [1]
-                    for _, prioritized_event in prioritized_events.iterrows()
-                ]
-            # Get event that could be prioritized but weren't
-            non_prioritized_events = events[
-                (events[log_ids.enabled_time] > event[log_ids.enabled_time]) &
-                (events[log_ids.enabled_time] <= event[log_ids.start_time]) &
-                (events[log_ids.start_time] > event[log_ids.start_time])
-                ]
-            if len(non_prioritized_events) > 0:
-                non_prioritizations += [
-                    _get_features(event, non_prioritized_event, attributes) + [0]
-                    for _, non_prioritized_event in non_prioritized_events.iterrows()
-                ]
-    # Return a dataframe with the prioritized and not prioritized elements
-    return pd.DataFrame(prioritizations + non_prioritizations, columns=columns)
+                  "prioritized.{} as priorit_event_{}".format(attribute, attribute) for attribute in attributes
+              ]
+    prioritizations = ps.sqldf("""
+        SELECT {}
+        FROM event_log as delayed, event_log as prioritized
+        WHERE (delayed.enabled_time < prioritized.enabled_time and 
+                delayed.start_time > prioritized.start_time and 
+                delayed.Resource = prioritized.Resource)
+    """.format(", ".join(columns)), locals())
+    prioritizations['output'] = 1
+    non_prioritizations = ps.sqldf("""
+        SELECT {}
+        FROM event_log as delayed, event_log as prioritized
+        WHERE (delayed.enabled_time < prioritized.enabled_time and 
+                delayed.start_time >= prioritized.enabled_time and 
+                delayed.start_time < prioritized.start_time and 
+                delayed.Resource = prioritized.Resource)
+    """.format(", ".join(columns)), locals())
+    non_prioritizations['output'] = 0
+    # Return the concatenation of prioritized and non prioritized
+    return pd.concat([prioritizations, non_prioritizations]).reset_index(drop=True)
