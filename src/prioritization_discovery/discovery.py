@@ -37,33 +37,28 @@ def discover_prioritized_instances(
     for resource, events in event_log.groupby(log_ids.resource):
         # Sort them by enabled time
         events.sort_values([log_ids.enabled_time, log_ids.start_time], inplace=True)
-        # For each event that could have others prioritized
-        previous_event = None
+        # For each event (can't think on a way to filter them and don't have to check all of them)
         for index, event in events.iterrows():
-            # If following event is enabled after current start
-            if previous_event is not None:
-                # Get events prioritized w.r.t. the previous one
-                prioritized_events = events[
-                    (events[log_ids.enabled_time] > previous_event[log_ids.enabled_time]) &
-                    (events[log_ids.start_time] < previous_event[log_ids.start_time])
-                    ]
-                if len(prioritized_events) > 0:
-                    prioritizations += [
-                        _get_features(previous_event, prioritized_event, attributes) + [1]
-                        for _, prioritized_event in prioritized_events.iterrows()
-                    ]
-                # Get event that could be prioritized but weren't
-                non_prioritized_events = events[
-                    (events[log_ids.enabled_time] > previous_event[log_ids.enabled_time]) &
-                    (events[log_ids.enabled_time] <= previous_event[log_ids.start_time]) &
-                    (events[log_ids.start_time] > previous_event[log_ids.start_time])
-                    ]
-                if len(non_prioritized_events) > 0:
-                    non_prioritizations += [
-                        _get_features(previous_event, non_prioritized_event, attributes) + [0]
-                        for _, non_prioritized_event in non_prioritized_events.iterrows()
-                    ]
-            # Jump to next event
-            previous_event = event
+            # Get events prioritized w.r.t. the previous one
+            prioritized_events = events[
+                (events[log_ids.enabled_time] > event[log_ids.enabled_time]) &
+                (events[log_ids.start_time] < event[log_ids.start_time])
+                ]
+            if len(prioritized_events) > 0:
+                prioritizations += [
+                    _get_features(event, prioritized_event, attributes) + [1]
+                    for _, prioritized_event in prioritized_events.iterrows()
+                ]
+            # Get event that could be prioritized but weren't
+            non_prioritized_events = events[
+                (events[log_ids.enabled_time] > event[log_ids.enabled_time]) &
+                (events[log_ids.enabled_time] <= event[log_ids.start_time]) &
+                (events[log_ids.start_time] > event[log_ids.start_time])
+                ]
+            if len(non_prioritized_events) > 0:
+                non_prioritizations += [
+                    _get_features(event, non_prioritized_event, attributes) + [0]
+                    for _, non_prioritized_event in non_prioritized_events.iterrows()
+                ]
     # Return a dataframe with the prioritized and not prioritized elements
     return pd.DataFrame(prioritizations + non_prioritizations, columns=columns)
