@@ -40,11 +40,25 @@ def test_discover_prioritized_instances_with_extra_attribute():
         inplace=True
     )
     prioritizations.reset_index(drop=True, inplace=True)
-    assert prioritizations.equals(pd.DataFrame(
-        [
-            ['A', 500, 'B', 1000, 1], ['A', 1000, 'B', 100, 0], ['A', 500, 'C', 1000, 1],
-            ['B', 100, 'A', 500, 1], ['B', 100, 'B', 500, 1], ['B', 100, 'B', 1000, 1],
-            ['B', 100, 'C', 500, 1], ['B', 100, 'C', 1000, 1]
-        ],
-        columns=['delayed_event_Activity', 'delayed_event_loan_amount', 'priorit_event_Activity', 'priorit_event_loan_amount', 'output']
-    ))
+    assert prioritizations.equals(
+        pd.DataFrame(
+            [
+                ['A', 500, 'B', 1000, 1, 0.5],
+                ['A', 1000, 'B', 100, 0, 10.0],
+                ['A', 500, 'C', 1000, 1, 0.5],
+                ['B', 100, 'A', 500, 1, 0.2],
+                ['B', 100, 'B', 500, 1, 0.2],
+                ['B', 100, 'B', 1000, 1, 0.1],
+                ['B', 100, 'C', 500, 1, 0.2],
+                ['B', 100, 'C', 1000, 1, 0.1]
+            ],
+            columns=[
+                'delayed_event_Activity',
+                'delayed_event_loan_amount',
+                'priorit_event_Activity',
+                'priorit_event_loan_amount',
+                'output',
+                'delayed_event_loan_amount / priorit_event_loan_amount'
+            ]
+        )
+    )
