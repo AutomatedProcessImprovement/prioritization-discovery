@@ -13,16 +13,11 @@ def test_discover_prioritized_instances():
     # Discover prioritization
     attributes = [DEFAULT_CSV_IDS.activity]
     prioritizations = discover_prioritized_instances(event_log, DEFAULT_CSV_IDS, attributes)
-    prioritizations.sort_values(['delayed_event_Activity', 'priorit_event_Activity', 'output'], inplace=True)
+    prioritizations.sort_values(['delayed_Activity', 'prioritized_Activity'], inplace=True)
     prioritizations.reset_index(drop=True, inplace=True)
     assert prioritizations.equals(pd.DataFrame(
-        [["A", "B", 0], ["A", "B", 0], ["A", "B", 0],
-         ["A", "B", 0], ["A", "B", 0], ["A", "B", 0],
-         ["B", "B", 0], ["B", "B", 0], ["B", "B", 0],
-         ["B", "B", 0], ["B", "B", 0], ["B", "B", 0],
-         ["B", "C", 1], ["B", "C", 1], ["B", "C", 1],
-         ["B", "C", 1], ["B", "C", 1], ["B", "C", 1]],
-        columns=['delayed_event_Activity', 'priorit_event_Activity', 'output']
+        [["B", "C"], ["B", "C"], ["B", "C"], ["B", "C"], ["B", "C"], ["B", "C"]],
+        columns=['delayed_Activity', 'prioritized_Activity']
     ))
 
 
@@ -36,29 +31,26 @@ def test_discover_prioritized_instances_with_extra_attribute():
     attributes = [DEFAULT_CSV_IDS.activity, 'loan_amount']
     prioritizations = discover_prioritized_instances(event_log, DEFAULT_CSV_IDS, attributes)
     prioritizations.sort_values(
-        ['delayed_event_Activity', 'priorit_event_Activity', 'delayed_event_loan_amount', 'priorit_event_loan_amount'],
+        ['delayed_Activity', 'prioritized_Activity', 'delayed_loan_amount', 'prioritized_loan_amount'],
         inplace=True
     )
     prioritizations.reset_index(drop=True, inplace=True)
     assert prioritizations.equals(
         pd.DataFrame(
             [
-                ['A', 500, 'B', 1000, 1, 0.5],
-                ['A', 1000, 'B', 100, 0, 10.0],
-                ['A', 500, 'C', 1000, 1, 0.5],
-                ['B', 100, 'A', 500, 1, 0.2],
-                ['B', 100, 'B', 500, 1, 0.2],
-                ['B', 100, 'B', 1000, 1, 0.1],
-                ['B', 100, 'C', 500, 1, 0.2],
-                ['B', 100, 'C', 1000, 1, 0.1]
+                ['A', 500, 'B', 1000],
+                ['A', 500, 'C', 1000],
+                ['B', 100, 'A', 500],
+                ['B', 100, 'B', 500],
+                ['B', 100, 'B', 1000],
+                ['B', 100, 'C', 500],
+                ['B', 100, 'C', 1000]
             ],
             columns=[
-                'delayed_event_Activity',
-                'delayed_event_loan_amount',
-                'priorit_event_Activity',
-                'priorit_event_loan_amount',
-                'output',
-                'delayed_event_loan_amount / priorit_event_loan_amount'
+                'delayed_Activity',
+                'delayed_loan_amount',
+                'prioritized_Activity',
+                'prioritized_loan_amount'
             ]
         )
     )
