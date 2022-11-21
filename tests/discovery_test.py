@@ -40,26 +40,26 @@ def test_discover_prioritized_instances_with_extra_attribute():
     prioritizations.sort_values(['Activity', 'loan_amount', 'outcome'], inplace=True)
     assert prioritizations.equals(
         pd.DataFrame(
-            pd.DataFrame(
-                data=[
-                    ['A', 500, 0],
-                    ['A', 500, 0],
-                    ['A', 500, 1],
-                    ['B', 100, 0],
-                    ['B', 100, 0],
-                    ['B', 100, 0],
-                    ['B', 100, 0],
-                    ['B', 100, 0],
-                    ['B', 500, 1],
-                    ['B', 1000, 1],
-                    ['B', 1000, 1],
-                    ['C', 500, 1],
-                    ['C', 1000, 1],
-                    ['C', 1000, 1]
-                ],
-                index=[0, 1, 2, 2, 3, 4, 5, 6, 4, 0, 3, 6, 1, 5],
-                columns=['Activity', 'loan_amount', 'outcome']
-            )
+            data=[
+                ['A', 500, 0],
+                ['A', 500, 0],
+                ['A', 500, 1],
+                ['B', 100, 0],
+                ['B', 100, 0],
+                ['B', 100, 0],
+                ['B', 100, 0],
+                ['B', 100, 0],
+                ['B', 500, 1],
+                ['B', 1000, 1],
+                ['B', 1000, 1],
+                ['C', 100, 0],
+                ['C', 500, 1],
+                ['C', 500, 1],
+                ['C', 1000, 1],
+                ['C', 1000, 1]
+            ],
+            index=[0, 1, 2, 2, 3, 4, 5, 6, 4, 0, 3, 7, 6, 7, 1, 5],
+            columns=['Activity', 'loan_amount', 'outcome']
         )
     )
 
@@ -102,7 +102,8 @@ def test__split_to_individual_observations_with_extra_attribute():
             ['B', 100, 'B', 500],
             ['B', 100, 'B', 1000],
             ['B', 100, 'C', 500],
-            ['B', 100, 'C', 1000]
+            ['B', 100, 'C', 1000],
+            ['C', 100, 'C', 500]
         ],
         columns=[
             'delayed_Activity',
@@ -129,15 +130,17 @@ def test__split_to_individual_observations_with_extra_attribute():
                 ['B', 100, 0],
                 ['B', 100, 0],
                 ['B', 100, 0],
+                ['C', 100, 0],
                 ['B', 1000, 1],
                 ['C', 1000, 1],
                 ['A', 500, 1],
                 ['B', 500, 1],
                 ['B', 1000, 1],
                 ['C', 500, 1],
-                ['C', 1000, 1]
+                ['C', 1000, 1],
+                ['C', 500, 1]
             ],
-            index=[0, 1, 2, 3, 4, 5, 6, 0, 1, 2, 3, 4, 5, 6],
+            index=[0, 1, 2, 3, 4, 5, 6, 7, 0, 1, 2, 3, 4, 5, 6, 7],
             columns=['Activity', 'loan_amount', 'outcome']
         )
     )
