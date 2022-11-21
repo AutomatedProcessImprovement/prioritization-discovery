@@ -17,3 +17,7 @@ DEFAULT_CSV_IDS = EventLogIDs(case='case_id',
                               end_time='end_time',
                               resource='Resource',
                               enabled_time='enabled_time')
+
+# Prefixes for internal use in prioritization discovery
+PRIORITIZED_PREFIX = "prioritized"
+DELAYED_PREFIX = "delayed"
