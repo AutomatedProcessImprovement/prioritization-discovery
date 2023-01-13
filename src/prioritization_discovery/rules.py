@@ -1,11 +1,11 @@
 import pandas as pd
 import wittgenstein as lw
+from wittgenstein import RIPPER
 
 
 def discover_prioritization_rules(
         data: pd.DataFrame,
-        outcome: str,
-        max_rules: int = 1
+        outcome: str
 ) -> list:
     """
     Discover, incrementally, rules to set the priority level of an activity instance in such a way that; when two activity instances are
@@ -28,15 +28,17 @@ def discover_prioritization_rules(
     # Extract rules level by level
     continue_search = True
     while continue_search:
+        # Reset the index to not have duplicated ones, RIPPER crashes with that
+        clean_filtered_data = filtered_data.reset_index(drop=True)
         # Discover a new model for the current observations
-        # ripper_model = _get_rules(filtered_data.reset_index(), outcome, min_rule_support, max_rules)
-        ripper_model = lw.RIPPER(max_rules=max_rules)
-        ripper_model.fit(filtered_data.reset_index(drop=True), class_feat=outcome)
+        ripper_model = _get_rules(clean_filtered_data, outcome)
+        # --ripper_model = lw.RIPPER(max_rules=max_rules)
+        # --ripper_model.fit(clean_filtered_data, class_feat=outcome)
         # If any rule has been discovered
         if len(ripper_model.ruleset_.rules) > 0:
             # Save model for this priority level
             ripper_models += [ripper_model]
-            # Remove all observations covered by this rules (also negative ones)
+            # Remove all observations covered by these rules (also negative ones)
             predictions = ripper_model.predict(filtered_data.drop([outcome], axis=1).reset_index())  # Don't drop old index on purpose
             true_positive_indexes = filtered_data[(filtered_data[outcome] == 1) & predictions].index
             filtered_data = filtered_data.loc[filtered_data.index.difference(true_positive_indexes)]
@@ -55,6 +57,42 @@ def discover_prioritization_rules(
         current_lvl -= 1
     # Return list of level rules
     return priority_levels
+
+
+def _get_rules(
+        data: pd.DataFrame,
+        outcome: str
+) -> RIPPER:
+    """
+    Discover one rule that lead to the positive outcome in the observations passed as argument in [data]. To do this, it uses RIPPER to
+    discover a rule 5 times, and gets the one with the highest confidence.
+
+    :param data:                pd.DataFrame with one observation per row.
+    :param outcome              ID of the column with the variable to predict (1 positive, 0 negative).
+    :return: the RIPPER model with the discovered rule with the highest confidence.
+    """
+    # Discover 5 times and get the one with more confidence
+    best_confidence = 0
+    best_model = None
+    for i in range(5):
+        # Train new model to extract 1 rule
+        new_model = lw.RIPPER(max_rules=5)
+        new_model.fit(data, class_feat=outcome)
+        # If any rule has been discovered
+        if len(new_model.ruleset_.rules) > 0:
+            # Measure confidence
+            predictions = new_model.predict(data.drop([outcome], axis=1))
+            true_positives = [
+                p and a
+                for (p, a) in zip(predictions, data[outcome])
+            ]
+            confidence = sum(true_positives) / sum(predictions)
+            # Retain if it's better than the previous one
+            if confidence > best_confidence:
+                best_confidence = confidence
+                best_model = new_model
+    # Return the best one, or None if no rules found in any iteration
+    return best_model
 
 
 def _parse_rules(model) -> list:
