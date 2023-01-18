@@ -63,7 +63,7 @@ def test_discover_prioritization_rules_with_extra_attribute():
     # Assert the rules
     assert prioritization_rules == prioritization_rules == [
         {
-            'priority_level': 2,
+            'priority_level': 0,
             'rules': [
                 [
                     {
@@ -104,6 +104,68 @@ def test_discover_prioritization_rules_with_double_and_condition():
         [600, "low", 0], [800, "low", 1]
     ]
     indices = [0, 0, 1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6, 7, 7, 8, 8, 9, 9]
+    # Multiply by 100 the observations to have enough population
+    resize = 100
+    data = data * resize
+    num_indices = len(set(indices))
+    indices = [index + (num_indices * i) for i in range(resize) for index in indices]
+    # Create dataframe with observations
+    prioritizations = pd.DataFrame(
+        data=data,
+        index=indices,
+        columns=['loan_amount', 'importance', 'outcome']
+    )
+    # Discover their rules
+    prioritization_rules = discover_prioritization_rules(prioritizations, 'outcome')
+    # Assert the rules
+    assert prioritization_rules == [
+        {
+            'priority_level': 0,
+            'rules': [
+                [
+                    {
+                        'attribute': 'importance',
+                        'condition': '=',
+                        'value': 'high'
+                    },
+                    {
+                        'attribute': 'loan_amount',
+                        'condition': '>',
+                        'value': '900.0'
+                    }
+                ]
+            ]
+        },
+        {
+            'priority_level': 1,
+            'rules': [
+                [
+                    {
+                        'attribute': 'loan_amount',
+                        'condition': '>',
+                        'value': '650.0'
+                    }
+                ]
+            ]
+        }
+    ]
+
+
+def test_discover_prioritization_rules_inverted():
+    # Given a set of prioritizations
+    data = [
+        [1300, "low", 0], [500, "low", 1],
+        [1100, "low", 0], [400, "low", 1],
+        [700, "high", 0], [400, "low", 1],
+        [2000, "low", 0], [510, "low", 1],
+        [900, "high", 0], [520, "high", 1],
+        [800, "high", 0], [600, "high", 1],
+        [1800, "low", 0], [800, "low", 1],
+        [1000, "low", 0], [1000, "high", 1],
+        [1010, "low", 0], [1100, "high", 1],
+        [1100, "low", 0], [1300, "high", 1]
+    ]
+    indices = [0, 0, 1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6, 7, 7, 8, 8, 9, 9]
     # Multiply by 10 the observations to have enough population
     resize = 100
     data = data * resize
@@ -120,18 +182,13 @@ def test_discover_prioritization_rules_with_double_and_condition():
     # Assert the rules
     assert prioritization_rules == [
         {
-            'priority_level': 2,
+            'priority_level': 0,
             'rules': [
                 [
                     {
-                        'attribute': 'importance',
-                        'condition': '=',
-                        'value': 'High'
-                    },
-                    {
                         'attribute': 'loan_amount',
-                        'condition': '>=',
-                        'value': '1000'
+                        'condition': '<=',
+                        'value': '650.0'
                     }
                 ]
             ]
@@ -141,9 +198,21 @@ def test_discover_prioritization_rules_with_double_and_condition():
             'rules': [
                 [
                     {
+                        'attribute': 'importance',
+                        'condition': '=',
+                        'value': 'high'
+                    }
+                ]
+            ]
+        },
+        {
+            'priority_level': 2,
+            'rules': [
+                [
+                    {
                         'attribute': 'loan_amount',
-                        'condition': '>=',
-                        'value': '700'
+                        'condition': '<=',
+                        'value': '1300.0'
                     }
                 ]
             ]
