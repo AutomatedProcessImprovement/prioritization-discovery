@@ -1,7 +1,7 @@
 import pandas as pd
 
 from prioritization_discovery.config import DEFAULT_CSV_IDS
-from prioritization_discovery.discovery import discover_prioritized_instances, _split_to_individual_observations
+from prioritization_discovery.discovery import _discover_prioritized_instances, _split_to_individual_observations, discover_priority_rules
 
 
 def test_discover_prioritized_instances():
@@ -12,7 +12,7 @@ def test_discover_prioritized_instances():
     event_log[DEFAULT_CSV_IDS.end_time] = pd.to_datetime(event_log[DEFAULT_CSV_IDS.end_time], utc=True)
     # Discover prioritization
     attributes = [DEFAULT_CSV_IDS.activity]
-    prioritizations = discover_prioritized_instances(event_log, attributes)
+    prioritizations = _discover_prioritized_instances(event_log, attributes)
     prioritizations.sort_values(['Activity'], inplace=True)
     assert prioritizations.equals(
         pd.DataFrame(
@@ -36,7 +36,7 @@ def test_discover_prioritized_instances_with_extra_attribute():
     event_log[DEFAULT_CSV_IDS.end_time] = pd.to_datetime(event_log[DEFAULT_CSV_IDS.end_time], utc=True)
     # Discover prioritization
     attributes = [DEFAULT_CSV_IDS.activity, 'loan_amount']
-    prioritizations = discover_prioritized_instances(event_log, attributes)
+    prioritizations = _discover_prioritized_instances(event_log, attributes)
     prioritizations.sort_values(['Activity', 'loan_amount', 'outcome'], inplace=True)
     assert prioritizations.equals(
         pd.DataFrame(
@@ -144,3 +144,42 @@ def test__split_to_individual_observations_with_extra_attribute():
             columns=['Activity', 'loan_amount', 'outcome']
         )
     )
+
+
+def test_discover_priority_rules_naive():
+    # Read event log
+    event_log = pd.read_csv("./tests/assets/event_log_3.csv")
+    event_log[DEFAULT_CSV_IDS.enabled_time] = pd.to_datetime(event_log[DEFAULT_CSV_IDS.enabled_time], utc=True)
+    event_log[DEFAULT_CSV_IDS.start_time] = pd.to_datetime(event_log[DEFAULT_CSV_IDS.start_time], utc=True)
+    event_log[DEFAULT_CSV_IDS.end_time] = pd.to_datetime(event_log[DEFAULT_CSV_IDS.end_time], utc=True)
+    # Discover prioritization
+    attributes = ['urgency']
+    # Get priority levels and their rules
+    prioritization_levels = discover_priority_rules(event_log, attributes)
+    # Assert expected levels and rules
+    assert prioritization_levels == [
+        {
+            'priority_level': 0,
+            'rules': [
+                [
+                    {
+                        'attribute': 'urgency',
+                        'condition': '=',
+                        'value': 'high'
+                    }
+                ]
+            ]
+        },
+        {
+            'priority_level': 1,
+            'rules': [
+                [
+                    {
+                        'attribute': 'urgency',
+                        'condition': '=',
+                        'value': 'medium'
+                    }
+                ]
+            ]
+        }
+    ]

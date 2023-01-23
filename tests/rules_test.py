@@ -1,6 +1,6 @@
 import pandas as pd
 
-from prioritization_discovery.rules import discover_prioritization_rules
+from prioritization_discovery.rules import discover_prioritization_rules, _reverse_one_hot_encoding
 
 
 def test_discover_prioritization_rules():
@@ -20,7 +20,7 @@ def test_discover_prioritization_rules():
     # Assert the rules
     assert prioritization_rules == [
         {
-            'priority_level': 1,
+            'priority_level': 0,
             'rules': [
                 [
                     {
@@ -39,7 +39,7 @@ def test_discover_prioritization_rules_with_extra_attribute():
     prioritizations = pd.DataFrame(
         data=[
             ['A', 500, 0],
-            ['A', 500, 0],
+            ['B', 500, 0],
             ['A', 500, 1],
             ['B', 100, 0],
             ['B', 100, 0],
@@ -52,7 +52,7 @@ def test_discover_prioritization_rules_with_extra_attribute():
             ['C', 100, 0],
             ['C', 500, 1],
             ['C', 500, 1],
-            ['C', 1000, 1],
+            ['A', 1000, 1],
             ['C', 1000, 1]
         ],
         index=[0, 1, 2, 2, 3, 4, 5, 6, 4, 0, 3, 7, 6, 7, 1, 5],
@@ -68,8 +68,8 @@ def test_discover_prioritization_rules_with_extra_attribute():
                 [
                     {
                         'attribute': 'loan_amount',
-                        'condition': '=',
-                        'value': '1000'
+                        'condition': '>',
+                        'value': '750.0'
                     }
                 ]
             ]
@@ -80,8 +80,8 @@ def test_discover_prioritization_rules_with_extra_attribute():
                 [
                     {
                         'attribute': 'loan_amount',
-                        'condition': '=',
-                        'value': '500'
+                        'condition': '>',
+                        'value': '300.0'
                     }
                 ]
             ]
@@ -124,14 +124,14 @@ def test_discover_prioritization_rules_with_double_and_condition():
             'rules': [
                 [
                     {
-                        'attribute': 'importance',
-                        'condition': '=',
-                        'value': 'high'
-                    },
-                    {
                         'attribute': 'loan_amount',
                         'condition': '>',
                         'value': '900.0'
+                    },
+                    {
+                        'attribute': 'importance',
+                        'condition': '=',
+                        'value': 'high'
                     }
                 ]
             ]
@@ -218,3 +218,73 @@ def test_discover_prioritization_rules_inverted():
             ]
         }
     ]
+
+
+def test__reverse_one_hot_encoding():
+    # Check redundancy removal when there is one rule with '=' and others with '!=' for the same attribute
+    assert _reverse_one_hot_encoding(
+        model=[[
+            {'attribute': 'urgency_high', 'condition': '>', 'value': '0.5'},
+            {'attribute': 'urgency_low', 'condition': '<=', 'value': '0.5'}
+        ]],
+        dummy_columns={
+            'urgency': ['low', 'medium', 'high']
+        },
+        data=pd.DataFrame(
+            {
+                'urgency_low': [1, 0, 0, 0, 0, 0, 1, 1, 0],
+                'urgency_medium': [0, 0, 0, 0, 0, 0, 0, 0, 0],
+                'urgency_high': [0, 1, 1, 1, 1, 1, 0, 0, 1],
+                'amount': [100, 50, 10, 2, 40, 54, 23, 28, 54]
+            }
+        )
+    ) == [[
+        {'attribute': 'urgency', 'condition': '=', 'value': 'high'}
+    ]]
+    # Check redundancy removal when there is 5 possible values for an attribute and 4 rules with '!='
+    assert _reverse_one_hot_encoding(
+        model=[[
+            {'attribute': 'urgency_low_medium', 'condition': '<=', 'value': '0.5'},
+            {'attribute': 'urgency_medium', 'condition': '<=', 'value': '0.5'},
+            {'attribute': 'urgency_medium_high', 'condition': '<=', 'value': '0.5'},
+            {'attribute': 'urgency_high', 'condition': '<=', 'value': '0.5'}
+        ]],
+        dummy_columns={
+            'urgency': ['low', 'low_medium', 'medium', 'medium_high', 'high']
+        },
+        data=pd.DataFrame(
+            {
+                'urgency_low': [0, 0, 0, 0, 1, 1, 1, 1, 1],
+                'urgency_low_medium': [0, 1, 0, 0, 0, 0, 0, 0, 0],
+                'urgency_medium': [0, 0, 1, 0, 0, 0, 0, 0, 0],
+                'urgency_medium_high': [0, 0, 0, 1, 0, 0, 0, 0, 0],
+                'urgency_high': [1, 0, 0, 0, 0, 0, 0, 0, 0],
+                'amount': [100, 50, 10, 2, 40, 54, 23, 28, 54]
+            }
+        )
+    ) == [[
+        {'attribute': 'urgency', 'condition': '=', 'value': 'low'}
+    ]]
+    # Check redundancy removal when there is 4 possible values (in the filtered data) for an attribute and 3 rules with '!='
+    assert _reverse_one_hot_encoding(
+        model=[[
+            {'attribute': 'urgency_medium', 'condition': '<=', 'value': '0.5'},
+            {'attribute': 'urgency_medium_high', 'condition': '<=', 'value': '0.5'},
+            {'attribute': 'urgency_high', 'condition': '<=', 'value': '0.5'}
+        ]],
+        dummy_columns={
+            'urgency': ['low', 'low_medium', 'medium', 'medium_high', 'high']
+        },
+        data=pd.DataFrame(
+            {
+                'urgency_low': [0, 0, 0, 0, 1, 1, 1, 1, 1],
+                'urgency_low_medium': [0, 0, 0, 0, 0, 0, 0, 0, 0],
+                'urgency_medium': [0, 0, 1, 0, 0, 0, 0, 0, 0],
+                'urgency_medium_high': [0, 0, 0, 1, 0, 0, 0, 0, 0],
+                'urgency_high': [1, 1, 0, 0, 0, 0, 0, 0, 0],
+                'amount': [100, 50, 10, 2, 40, 54, 23, 28, 54]
+            }
+        )
+    ) == [[
+        {'attribute': 'urgency', 'condition': '=', 'value': 'low'}
+    ]]

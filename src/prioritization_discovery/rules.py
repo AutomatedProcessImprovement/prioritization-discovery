@@ -1,3 +1,4 @@
+import copy
 import re
 
 import pandas as pd
@@ -33,8 +34,9 @@ def discover_prioritization_rules(
         model = _get_rules(filtered_data, outcome)
         # If any rule has been discovered
         if len(model) > 0:
-            # Save model for this priority level
-            models += [model]
+            # Reverse the one hot encoding and save model for this priority level
+            parsed_model = _reverse_one_hot_encoding(model, dummy_columns, filtered_data)
+            models += [parsed_model]
             # Remove all observations covered by these rules (also negative ones)
             predictions = _predict(model, filtered_data.drop([outcome], axis=1))
             true_positive_indexes = filtered_data[(filtered_data[outcome] == 1) & predictions].index
@@ -49,7 +51,7 @@ def discover_prioritization_rules(
     priority_levels = []
     current_lvl = 0
     for model in models:
-        parsed_model = _reverse_one_hot_encoding(model, dummy_columns)
+        parsed_model = model
         priority_levels += [{'priority_level': current_lvl, 'rules': parsed_model}]
         current_lvl += 1
     # Return list of level rules
@@ -191,25 +193,77 @@ def _fulfill_ruleset(rules: list, observation: pd.Series):
     return fulfills
 
 
-def _reverse_one_hot_encoding(model: list, dummy_columns: dict) -> list:
-    # Process dummy columns
-    dummy_map = {"{}_{}".format(column, value): (column, value) for column in dummy_columns for value in dummy_columns[column]}
-    for ruleset in model:
-        for rule in ruleset:
-            if rule['attribute'] in dummy_map:
-                (orig_name, orig_value) = dummy_map[rule['attribute']]
-                rule['attribute'] = orig_name
-                if rule['condition'] == ">":
-                    # Rule indicates that it is this value, so save it
-                    rule['condition'] = "="
-                    rule['value'] = orig_value
-                elif len(dummy_columns[orig_name]) == 2:
-                    # Only two value options, and rule indicates "not this value", so save the other
-                    rule['condition'] = "="
-                    rule['value'] = [value for value in dummy_columns[orig_name] if value != orig_value][0]
-                else:
-                    # More than two options, and rule indicates "not this value", so keep the "different that" the current one
-                    rule['condition'] = "!="
-                    rule['value'] = orig_value
+def _reverse_one_hot_encoding(model: list, dummy_columns: dict, data: pd.DataFrame) -> list:
+    # Deep copy of the list
+    new_model = copy.deepcopy(model)
+    # Correct the dummy columns removing the values that are no longer present in the dataset
+    new_dummy_columns = {}
+    for column in dummy_columns:
+        new_values = [
+            value
+            for value in dummy_columns[column]
+            if (data["{}_{}".format(column, value)] == 1).any()
+        ]
+        new_dummy_columns[column] = new_values
+    # For each ruleset (list of rules combined by ANDs such as all must be fulfilled)
+    for ruleset in new_model:
+        # Process each ruleset individually
+        _reverse_one_hot_encoding_ruleset(ruleset, new_dummy_columns)
     # Return parsed rules
-    return model
+    return new_model
+
+
+def _reverse_one_hot_encoding_ruleset(ruleset: list, dummy_columns: dict):
+    # Initialize
+    dummy_map = {  # Dict with dummified name as key, and pair with column+value as value
+        "{}_{}".format(column, value): (column, value)
+        for column in dummy_columns
+        for value in dummy_columns[column]
+    }
+    diff_than_attributes = {  # Empty list for each attribute to store the assigned values
+        attribute: []
+        for attribute in dummy_columns
+    }
+    equal_to_attributes = []  # Attributes with a rule '='
+    rules_to_remove = []  # Indices of the rules to remove because of redundancy
+    # Parse each rule in the ruleset
+    for rule in ruleset:
+        if rule['attribute'] in dummy_map:
+            (orig_name, orig_value) = dummy_map[rule['attribute']]
+            rule['attribute'] = orig_name
+            rule['value'] = orig_value
+            if rule['condition'] == ">":
+                rule['condition'] = "="
+                equal_to_attributes += [orig_name]
+            else:
+                rule['condition'] = "!="
+                diff_than_attributes[orig_name] += [orig_value]
+    # Remove rules with '!=' if there's also a rule with '='
+    for attribute in set(equal_to_attributes):
+        rules_to_remove += [  # Get the index of the rules of this attribute with "!=" condition
+            index
+            for index, rule in enumerate(ruleset)
+            if rule['attribute'] == attribute and rule['condition'] == "!="
+        ]
+    # Check if any categorical rule with N possible values got N-1 times '!=' (meaning it's '=' to the missing value).
+    for attribute in diff_than_attributes:
+        if (attribute not in equal_to_attributes and
+                len(diff_than_attributes[attribute]) > 0 and
+                len(diff_than_attributes[attribute]) == len(dummy_columns[attribute]) - 1):
+            # Attribute has N possible values, and N-1 rules saying 'different from', simplify it
+            new_rule = {
+                'attribute': attribute,
+                'condition': "=",
+                'value': [  # Get the missing value in all "!=" rules for this attribute
+                    value
+                    for value in dummy_columns[attribute]
+                    if value not in diff_than_attributes[attribute]
+                ][0]  # Get the first element (there should be only one)
+            }
+            # Get the index of the rules of this attribute with "!=" condition
+            rules_to_remove += [index for index, rule in enumerate(ruleset) if rule['attribute'] == attribute]
+            # Add new rule to ruleset
+            ruleset += [new_rule]
+    # Remove redundant rules
+    for i in sorted(rules_to_remove, reverse=True):
+        del ruleset[i]
