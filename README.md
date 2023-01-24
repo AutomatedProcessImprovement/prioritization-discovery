@@ -24,6 +24,9 @@ case_attributes = discover_priority_rules(
 )
 ```
 
+To see a more detailed example of use, and the format of the output, you can check this
+[test file](https://github.com/AutomatedProcessImprovement/prioritization-discovery/blob/45e1aa561a84d8ab16b02469683aa0183f1ac8ca/tests/discovery_test.py#L149).
+
 ### No enabled time available
 
 To identify which activity instances have been prioritized over others, the information of the enabled time has to be available in the event
