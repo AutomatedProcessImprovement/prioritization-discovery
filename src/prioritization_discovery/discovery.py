@@ -43,8 +43,8 @@ def _discover_prioritized_instances(
     :return: a pd.DataFrame with each of the observations (positive and negative) of prioritization found in the event log.
     """
     # Dictionaries with the attribute name and delayed/prioritized renamed values
-    delayed_attributes = {attribute: add_prefix(DELAYED_PREFIX, attribute) for attribute in attributes}
-    prioritized_attributes = {attribute: add_prefix(PRIORITIZED_PREFIX, attribute) for attribute in attributes}
+    delayed_attributes = {attribute: _add_prefix(DELAYED_PREFIX, attribute) for attribute in attributes}
+    prioritized_attributes = {attribute: _add_prefix(PRIORITIZED_PREFIX, attribute) for attribute in attributes}
     # Define columns for the SQL query
     columns = [
                   "delayed.{} as {}".format(attribute, delayed_attributes[attribute]) for attribute in delayed_attributes
@@ -90,7 +90,7 @@ def _split_to_individual_observations(
     # Get the columns of the delayed instances
     delayed_instances = event_log[delayed_attributes].rename(
         {
-            column_name: remove_prefix(DELAYED_PREFIX, column_name)
+            column_name: _remove_prefix(DELAYED_PREFIX, column_name)
             for column_name in delayed_attributes
         },
         axis=1
@@ -99,7 +99,7 @@ def _split_to_individual_observations(
     # Get the columns of the prioritized instances
     prioritized_instances = event_log[prioritized_attributes].rename(
         {
-            column_name: remove_prefix(PRIORITIZED_PREFIX, column_name)
+            column_name: _remove_prefix(PRIORITIZED_PREFIX, column_name)
             for column_name in prioritized_attributes
         },
         axis=1
@@ -109,11 +109,11 @@ def _split_to_individual_observations(
     return pd.concat([delayed_instances, prioritized_instances])
 
 
-def add_prefix(prefix: str, name: str) -> str:
+def _add_prefix(prefix: str, name: str) -> str:
     return "{}_{}".format(prefix, name)
 
 
-def remove_prefix(prefix: str, name: str) -> str:
+def _remove_prefix(prefix: str, name: str) -> str:
     if name.startswith(prefix):
         return name[len(prefix) + 1:]
     else:
