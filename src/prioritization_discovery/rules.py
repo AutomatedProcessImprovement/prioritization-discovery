@@ -49,7 +49,7 @@ def discover_prioritization_rules(
             continue_search = False
     # Create empty list for priority levels
     priority_levels = []
-    current_lvl = 0
+    current_lvl = 1
     for model in models:
         parsed_model = model
         priority_levels += [{'priority_level': current_lvl, 'rules': parsed_model}]

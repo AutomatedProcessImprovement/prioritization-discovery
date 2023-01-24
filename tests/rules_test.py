@@ -20,7 +20,7 @@ def test_discover_prioritization_rules():
     # Assert the rules
     assert prioritization_rules == [
         {
-            'priority_level': 0,
+            'priority_level': 1,
             'rules': [
                 [
                     {
@@ -63,7 +63,7 @@ def test_discover_prioritization_rules_with_extra_attribute():
     # Assert the rules
     assert prioritization_rules == prioritization_rules == [
         {
-            'priority_level': 0,
+            'priority_level': 1,
             'rules': [
                 [
                     {
@@ -75,7 +75,7 @@ def test_discover_prioritization_rules_with_extra_attribute():
             ]
         },
         {
-            'priority_level': 1,
+            'priority_level': 2,
             'rules': [
                 [
                     {
@@ -120,7 +120,7 @@ def test_discover_prioritization_rules_with_double_and_condition():
     # Assert the rules
     assert prioritization_rules == [
         {
-            'priority_level': 0,
+            'priority_level': 1,
             'rules': [
                 [
                     {
@@ -137,7 +137,7 @@ def test_discover_prioritization_rules_with_double_and_condition():
             ]
         },
         {
-            'priority_level': 1,
+            'priority_level': 2,
             'rules': [
                 [
                     {
@@ -182,7 +182,7 @@ def test_discover_prioritization_rules_inverted():
     # Assert the rules
     assert prioritization_rules == [
         {
-            'priority_level': 0,
+            'priority_level': 1,
             'rules': [
                 [
                     {
@@ -194,7 +194,7 @@ def test_discover_prioritization_rules_inverted():
             ]
         },
         {
-            'priority_level': 1,
+            'priority_level': 2,
             'rules': [
                 [
                     {
@@ -206,7 +206,7 @@ def test_discover_prioritization_rules_inverted():
             ]
         },
         {
-            'priority_level': 2,
+            'priority_level': 3,
             'rules': [
                 [
                     {

@@ -159,7 +159,7 @@ def test_discover_priority_rules_naive():
     # Assert expected levels and rules
     assert prioritization_levels == [
         {
-            'priority_level': 0,
+            'priority_level': 1,
             'rules': [
                 [
                     {
@@ -171,7 +171,7 @@ def test_discover_priority_rules_naive():
             ]
         },
         {
-            'priority_level': 1,
+            'priority_level': 2,
             'rules': [
                 [
                     {
