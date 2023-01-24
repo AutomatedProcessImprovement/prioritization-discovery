@@ -20,7 +20,7 @@ event_log[DEFAULT_CSV_IDS.end_time] = pd.to_datetime(event_log[DEFAULT_CSV_IDS.e
 # Get priority levels and their rules
 case_attributes = discover_priority_rules(
     event_log=event_log,
-    attributes=['loan_amount', 'client_type']  # Attributes (case attributes) to consider in the rule discovery
+    attributes=['loan_amount', 'client_type']  # Case attributes to consider in the rule discovery
 )
 ```
 
