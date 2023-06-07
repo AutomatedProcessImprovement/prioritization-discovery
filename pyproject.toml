@@ -1,0 +1,27 @@
+[tool.poetry]
+name = "prioritization-discovery"
+version = "0.4.0"
+description = "Python algorithm to discover, from an event log, prioritization rules that lead to one activity instance to be executed before another."
+authors = ["David Chapela de la Campa <david.chapela.delacampa@gmail.com>"]
+readme = "README.md"
+packages = [{ include = "prioritization_discovery", from = "src" }]
+
+[tool.poetry.dependencies]
+python = ">=3.9, <3.12"
+pandas = "^2.0.2"
+pandasql = "^0.7.3"
+scikit-learn = "^1.2.2"
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^7.3.1"
+
+[tool.black]
+line-length = 120
+
+[tool.ruff]
+line-length = 120
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
