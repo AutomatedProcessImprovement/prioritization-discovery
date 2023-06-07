@@ -1,5 +1,8 @@
 # Prioritization Discovery
 
+![case-attribute-discovery](https://github.com/AutomatedProcessImprovement/prioritization-discovery/actions/workflows/build.yaml/badge.svg)
+![version](https://img.shields.io/github/v/tag/AutomatedProcessImprovement/prioritization-discovery)
+
 Python algorithm to discover, from an event log, the case priority levels and the rules that classify a process case in its corresponding
 level. For example, the cases of a process can belong to three priority levels (low, medium, high), where the activity instances of cases
 with high priority are executed before than activity instances of cases with low priority (when both of them are enabled at the same time).
