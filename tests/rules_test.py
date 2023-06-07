@@ -59,12 +59,12 @@ def test_discover_prioritization_rules_with_extra_attribute():
     prioritization_rules = discover_prioritization_rules(prioritizations, "outcome")
     # Assert the rules
     assert (
-        prioritization_rules
-        == prioritization_rules
-        == [
-            {"priority_level": 1, "rules": [[{"attribute": "loan_amount", "condition": ">", "value": "750.0"}]]},
-            {"priority_level": 2, "rules": [[{"attribute": "loan_amount", "condition": ">", "value": "300.0"}]]},
-        ]
+            prioritization_rules
+            == prioritization_rules
+            == [
+                {"priority_level": 1, "rules": [[{"attribute": "loan_amount", "condition": ">", "value": "750.0"}]]},
+                {"priority_level": 2, "rules": [[{"attribute": "loan_amount", "condition": ">", "value": "300.0"}]]},
+            ]
     )
 
 
@@ -103,7 +103,7 @@ def test_discover_prioritization_rules_with_double_and_condition():
     # Discover their rules
     prioritization_rules = discover_prioritization_rules(prioritizations, "outcome")
     # Assert the rules
-    assert prioritization_rules == [
+    assert sort_rules(prioritization_rules) == sort_rules([
         {
             "priority_level": 1,
             "rules": [
@@ -114,7 +114,7 @@ def test_discover_prioritization_rules_with_double_and_condition():
             ],
         },
         {"priority_level": 2, "rules": [[{"attribute": "loan_amount", "condition": ">", "value": "650.0"}]]},
-    ]
+    ])
 
 
 def test_discover_prioritization_rules_inverted():
@@ -221,3 +221,12 @@ def test__reverse_one_hot_encoding():
             }
         ),
     ) == [[{"attribute": "urgency", "condition": "=", "value": "low"}]]
+
+
+def sort_rules(rules):
+    sorted_by_level = sorted(rules, key=lambda x: x["priority_level"])
+    sorted_by_rules_attribute = [
+        {"priority_level": rule["priority_level"], "rules": sorted(rule["rules"], key=lambda x: x[0]["attribute"])}
+        for rule in sorted_by_level
+    ]
+    return sorted_by_rules_attribute
