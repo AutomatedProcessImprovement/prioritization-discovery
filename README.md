@@ -1,6 +1,6 @@
 # Prioritization Discovery
 
-![case-attribute-discovery](https://github.com/AutomatedProcessImprovement/prioritization-discovery/actions/workflows/build.yaml/badge.svg)
+![ci](https://github.com/AutomatedProcessImprovement/prioritization-discovery/actions/workflows/build.yaml/badge.svg)
 ![version](https://img.shields.io/github/v/tag/AutomatedProcessImprovement/prioritization-discovery)
 
 Python algorithm to discover, from an event log, the case priority levels and the rules that classify a process case in its corresponding
