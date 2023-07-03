@@ -25,7 +25,7 @@ def test_discover_prioritization_rules():
                 [
                     {
                         'attribute': 'Activity',
-                        'condition': '=',
+                        'comparison': '=',
                         'value': 'C'
                     }
                 ]
@@ -68,7 +68,7 @@ def test_discover_prioritization_rules_with_extra_attribute():
                 [
                     {
                         'attribute': 'loan_amount',
-                        'condition': '>',
+                        'comparison': '>',
                         'value': '750.0'
                     }
                 ]
@@ -80,7 +80,7 @@ def test_discover_prioritization_rules_with_extra_attribute():
                 [
                     {
                         'attribute': 'loan_amount',
-                        'condition': '>',
+                        'comparison': '>',
                         'value': '300.0'
                     }
                 ]
@@ -125,12 +125,12 @@ def test_discover_prioritization_rules_with_double_and_condition():
                 [
                     {
                         'attribute': 'loan_amount',
-                        'condition': '>',
+                        'comparison': '>',
                         'value': '900.0'
                     },
                     {
                         'attribute': 'importance',
-                        'condition': '=',
+                        'comparison': '=',
                         'value': 'high'
                     }
                 ]
@@ -142,7 +142,7 @@ def test_discover_prioritization_rules_with_double_and_condition():
                 [
                     {
                         'attribute': 'loan_amount',
-                        'condition': '>',
+                        'comparison': '>',
                         'value': '650.0'
                     }
                 ]
@@ -187,7 +187,7 @@ def test_discover_prioritization_rules_inverted():
                 [
                     {
                         'attribute': 'loan_amount',
-                        'condition': '<=',
+                        'comparison': '<=',
                         'value': '650.0'
                     }
                 ]
@@ -199,7 +199,7 @@ def test_discover_prioritization_rules_inverted():
                 [
                     {
                         'attribute': 'importance',
-                        'condition': '=',
+                        'comparison': '=',
                         'value': 'high'
                     }
                 ]
@@ -211,7 +211,7 @@ def test_discover_prioritization_rules_inverted():
                 [
                     {
                         'attribute': 'loan_amount',
-                        'condition': '<=',
+                        'comparison': '<=',
                         'value': '1300.0'
                     }
                 ]
@@ -224,8 +224,8 @@ def test__reverse_one_hot_encoding():
     # Check redundancy removal when there is one rule with '=' and others with '!=' for the same attribute
     assert _reverse_one_hot_encoding(
         model=[[
-            {'attribute': 'urgency_high', 'condition': '>', 'value': '0.5'},
-            {'attribute': 'urgency_low', 'condition': '<=', 'value': '0.5'}
+            {'attribute': 'urgency_high', 'comparison': '>', 'value': '0.5'},
+            {'attribute': 'urgency_low', 'comparison': '<=', 'value': '0.5'}
         ]],
         dummy_columns={
             'urgency': ['low', 'medium', 'high']
@@ -239,15 +239,15 @@ def test__reverse_one_hot_encoding():
             }
         )
     ) == [[
-        {'attribute': 'urgency', 'condition': '=', 'value': 'high'}
+        {'attribute': 'urgency', 'comparison': '=', 'value': 'high'}
     ]]
     # Check redundancy removal when there is 5 possible values for an attribute and 4 rules with '!='
     assert _reverse_one_hot_encoding(
         model=[[
-            {'attribute': 'urgency_low_medium', 'condition': '<=', 'value': '0.5'},
-            {'attribute': 'urgency_medium', 'condition': '<=', 'value': '0.5'},
-            {'attribute': 'urgency_medium_high', 'condition': '<=', 'value': '0.5'},
-            {'attribute': 'urgency_high', 'condition': '<=', 'value': '0.5'}
+            {'attribute': 'urgency_low_medium', 'comparison': '<=', 'value': '0.5'},
+            {'attribute': 'urgency_medium', 'comparison': '<=', 'value': '0.5'},
+            {'attribute': 'urgency_medium_high', 'comparison': '<=', 'value': '0.5'},
+            {'attribute': 'urgency_high', 'comparison': '<=', 'value': '0.5'}
         ]],
         dummy_columns={
             'urgency': ['low', 'low_medium', 'medium', 'medium_high', 'high']
@@ -263,14 +263,14 @@ def test__reverse_one_hot_encoding():
             }
         )
     ) == [[
-        {'attribute': 'urgency', 'condition': '=', 'value': 'low'}
+        {'attribute': 'urgency', 'comparison': '=', 'value': 'low'}
     ]]
     # Check redundancy removal when there is 4 possible values (in the filtered data) for an attribute and 3 rules with '!='
     assert _reverse_one_hot_encoding(
         model=[[
-            {'attribute': 'urgency_medium', 'condition': '<=', 'value': '0.5'},
-            {'attribute': 'urgency_medium_high', 'condition': '<=', 'value': '0.5'},
-            {'attribute': 'urgency_high', 'condition': '<=', 'value': '0.5'}
+            {'attribute': 'urgency_medium', 'comparison': '<=', 'value': '0.5'},
+            {'attribute': 'urgency_medium_high', 'comparison': '<=', 'value': '0.5'},
+            {'attribute': 'urgency_high', 'comparison': '<=', 'value': '0.5'}
         ]],
         dummy_columns={
             'urgency': ['low', 'low_medium', 'medium', 'medium_high', 'high']
@@ -286,5 +286,5 @@ def test__reverse_one_hot_encoding():
             }
         )
     ) == [[
-        {'attribute': 'urgency', 'condition': '=', 'value': 'low'}
+        {'attribute': 'urgency', 'comparison': '=', 'value': 'low'}
     ]]

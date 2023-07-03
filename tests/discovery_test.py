@@ -164,7 +164,7 @@ def test_discover_priority_rules_naive():
                 [
                     {
                         'attribute': 'urgency',
-                        'condition': '=',
+                        'comparison': '=',
                         'value': 'high'
                     }
                 ]
@@ -176,7 +176,7 @@ def test_discover_priority_rules_naive():
                 [
                     {
                         'attribute': 'urgency',
-                        'condition': '=',
+                        'comparison': '=',
                         'value': 'medium'
                     }
                 ]
