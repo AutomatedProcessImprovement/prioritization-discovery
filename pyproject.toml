@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "prioritization-discovery"
-version = "0.4.3"
+version = "0.4.4"
 description = "Python algorithm to discover, from an event log, prioritization rules that lead to one activity instance to be executed before another."
 authors = ["David Chapela de la Campa <david.chapela.delacampa@gmail.com>"]
 readme = "README.md"
