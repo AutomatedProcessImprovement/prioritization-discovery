@@ -1,3 +1,7 @@
+🚨 This repository is now a subpackage of `pix-framework.discovery`, https://github.com/AutomatedProcessImprovement/pix-framework/tree/main/src/pix_framework/discovery/prioritization_discovery.
+
+---
+
 # Prioritization Discovery
 
 ![ci](https://github.com/AutomatedProcessImprovement/prioritization-discovery/actions/workflows/build.yaml/badge.svg)
